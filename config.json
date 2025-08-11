@@ -1,3 +1,5 @@
 {
-  "name": "3dviewer-back2D"
+  "name": "@geoportallux/3dviewer-back2D",
+  "pathTo2dGeoportal": "http://localhost:5173/theme/main",
+  "tabId": "lux2d"
 }
