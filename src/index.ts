@@ -8,36 +8,33 @@ import { fromLonLat } from 'ol/proj';
 import { name, version, mapVersion } from '../package.json';
 
 type PluginConfig = {
-  pathTo2dGeoportal: string,
-  tabId: string
-}
+  pathTo2dGeoportal: string;
+  tabId: string;
+};
 type PluginState = Record<never, never>;
 
 type MyPlugin = VcsPlugin<PluginConfig, PluginState>;
 
 const zoomToCesiumAltitude = {
-  9: 350000,
-  10: 180000,
-  11: 100000,
+  9: 190000,
+  10: 100000,
+  11: 70000,
   12: 40000,
-  13: 18000,
-  14: 9000,
+  13: 25000,
+  14: 10000,
   15: 6000,
   16: 3500,
   17: 1900,
   18: 900,
   19: 600,
-}
+};
 
 function getZoomFromAltitude(altitude: number) {
   let closestZoom = 9;
-  let smallestDiff = Infinity;
 
   for (const [zoom, alt] of Object.entries(zoomToCesiumAltitude)) {
-    const diff = Math.abs(altitude - alt);
-    if (diff < smallestDiff) {
-      smallestDiff = diff;
-      closestZoom = parseInt(zoom);
+    if (altitude < alt) {
+      closestZoom = parseInt(zoom, 10);
     }
   }
 
@@ -64,21 +61,36 @@ export default function plugin(
         title: 'back2d.title',
         icon: '$vcs2d',
         callback: async () => {
-           const state = await vcsUiApp.getState(true);
+          const state = await vcsUiApp.getState(true);
 
-          const [lon, lat, alt] = <number[]>state.activeViewpoint?.cameraPosition;
+          // This redirect is only available in 3D mode
+          if (!state.activeViewpoint?.cameraPosition) {
+            return;
+          }
+
+          const [lon, lat, alt] = state.activeViewpoint.cameraPosition as number[];
 
           const coordinates = fromLonLat([lon, lat]);
           const x = Math.round(coordinates[0]);
           const y = Math.round(coordinates[1]);
-          const zoom = getZoomFromAltitude(alt);
-     
+          const zoom = getZoomFromAltitude(Math.abs(alt));
+
+          console.log('Altitude = ', alt);
+          console.log('zoom = ', zoom);
+
+          // If we later need to add layers: in the VCS state, we only have the layer name but not the layer ID.
+          // The layer ID is required to construct the Luxembourg Geoportal url.
+          // Uncomment the following code if you need to implement this evolution.
+
+          // const layers = `layers=${state.layers.map(l => l.name).join(',')}`;
+          // const layersOpacity = `opacities=${state.layers.map(() => 1).join('-')}`;
+          // const layersTime = `time=${state.layers.map(() => '').join('-')}`;
+
           const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&version=3`;
+          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&version=3`; // &${layers}&${layersOpacity}&${layersTime}
           link.target = config.tabId;
+
           link.click();
-          
-          console.log(link.href)
         },
       };
 
@@ -91,8 +103,7 @@ export default function plugin(
 
       return Promise.resolve();
     },
-    onVcsAppMounted(vcsUiApp: VcsUiApp): void {
-    },
+    onVcsAppMounted(vcsUiApp: VcsUiApp): void {},
     /**
      * should return all default values of the configuration
      */
@@ -103,8 +114,6 @@ export default function plugin(
      * should return the plugin's serialization excluding all default values
      */
     toJSON(): PluginConfig {
-      // eslint-disable-next-line no-console
-      console.log('Called when serializing this plugin instance');
       return {};
     },
     /**
