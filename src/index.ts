@@ -15,6 +15,7 @@ type PluginState = Record<never, never>;
 
 type MyPlugin = VcsPlugin<PluginConfig, PluginState>;
 
+/* eslint-disable @typescript-eslint/naming-convention */
 const zoomToCesiumAltitude = {
   9: 190000,
   10: 100000,
@@ -28,8 +29,9 @@ const zoomToCesiumAltitude = {
   18: 900,
   19: 600,
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
-function getZoomFromAltitude(altitude: number) {
+function getZoomFromAltitude(altitude: number): number {
   let closestZoom = 9;
 
   for (const [zoom, alt] of Object.entries(zoomToCesiumAltitude)) {
@@ -43,6 +45,7 @@ function getZoomFromAltitude(altitude: number) {
 
 export default function plugin(
   config: PluginConfig,
+  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   baseUrl: string,
 ): MyPlugin {
   return {
@@ -55,12 +58,13 @@ export default function plugin(
     get mapVersion(): string {
       return mapVersion;
     },
-    initialize(vcsUiApp: VcsUiApp, state?: PluginState): Promise<void> {
+    // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+    initialize(vcsUiApp: VcsUiApp, pluginState?: PluginState): Promise<void> {
       const action = {
         name: '2D',
         title: 'back2d.title',
         icon: '$vcs2d',
-        callback: async () => {
+        callback: async (): Promise<void> => {
           const state = await vcsUiApp.getState(true);
 
           // This redirect is only available in 3D mode
@@ -68,15 +72,13 @@ export default function plugin(
             return;
           }
 
-          const [lon, lat, alt] = state.activeViewpoint.cameraPosition as number[];
+          const [lon, lat, alt] = state.activeViewpoint
+            .cameraPosition as number[];
 
           const coordinates = fromLonLat([lon, lat]);
           const x = Math.round(coordinates[0]);
           const y = Math.round(coordinates[1]);
           const zoom = getZoomFromAltitude(Math.abs(alt));
-
-          console.log('Altitude = ', alt);
-          console.log('zoom = ', zoom);
 
           // If we later need to add layers: in the VCS state, we only have the layer name but not the layer ID.
           // The layer ID is required to construct the Luxembourg Geoportal url.
@@ -103,25 +105,31 @@ export default function plugin(
 
       return Promise.resolve();
     },
+    // eslint-disable-next-line  @typescript-eslint/no-unused-vars
     onVcsAppMounted(vcsUiApp: VcsUiApp): void {},
     /**
      * should return all default values of the configuration
      */
     getDefaultOptions(): PluginConfig {
-      return {};
+      return {
+        pathTo2dGeoportal: config.pathTo2dGeoportal,
+        tabId: config.tabId,
+      };
     },
     /**
      * should return the plugin's serialization excluding all default values
      */
     toJSON(): PluginConfig {
-      return {};
+      return {
+        pathTo2dGeoportal: config.pathTo2dGeoportal,
+        tabId: config.tabId,
+      };
     },
     /**
      * should return the plugins state
-     * @param {boolean} forUrl
      * @returns {PluginState}
      */
-    getState(forUrl?: boolean): PluginState {
+    getState(): PluginState {
       return {
         prop: '*',
       };
