@@ -1,5 +1,5 @@
 {
-  "name": "@geoportallux/3dviewer-back2D",
+  "name": "@geoportallux/lux-3dviewer-plugin-back-to-2d-portal",
   "pathTo2dGeoportal": "http://localhost:5173/theme/main",
   "tabId": "lux2d"
 }
