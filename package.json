@@ -39,7 +39,7 @@
     "./dist": "./dist/index.js"
   },
   "repository": {
-    "url": "https://github.com/AlitaBernachot/3dviewer-back2D"
+    "url": "https://github.com/Geoportail-Luxembourg/3dviewer-plugin-back-to-2d-portal"
   },
   "eslintIgnore": [
     "node_modules",
