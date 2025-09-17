@@ -80,16 +80,24 @@ export default function plugin(
           const y = Math.round(coordinates[1]);
           const zoom = getZoomFromAltitude(Math.abs(alt));
 
-          // If we later need to add layers: in the VCS state, we only have the layer name but not the layer ID.
-          // The layer ID is required to construct the Luxembourg Geoportal url.
-          // Uncomment the following code if you need to implement this evolution.
+          const layersInState = [...vcsUiApp.layers]
+            .filter((l) => l.properties?.luxOrigin && (l.active || l.loading))
+            .toReversed();
 
-          // const layers = `layers=${state.layers.map(l => l.name).join(',')}`;
-          // const layersOpacity = `opacities=${state.layers.map(() => 1).join('-')}`;
-          // const layersTime = `time=${state.layers.map(() => '').join('-')}`;
+          const layers = layersInState.filter(
+            (l) => !l?.properties.is3DLayer && !l?.properties.luxIsBaselayer,
+          );
+          const layerIds = `layers=${layers.map((l) => l?.properties.luxId).join('-')}`;
+          const layersOpacity = `opacities=${layers.map(() => 1).join('-')}`;
+          const layersTime = `time=${layers.map(() => '-').join('-')}`;
+
+          const bgLayerInState = layersInState.filter(
+            (l) => l?.properties.luxIsBaselayer,
+          );
+          const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
 
           const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&version=3`; // &${layers}&${layersOpacity}&${layersTime}
+          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
           link.target = config.tabId;
 
           link.click();
