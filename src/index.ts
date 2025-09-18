@@ -68,17 +68,18 @@ export default function plugin(
           const state = await vcsUiApp.getState(true);
 
           // This redirect is only available in 3D mode
-          if (!state.activeViewpoint?.cameraPosition) {
+          if (!state.activeViewpoint?.groundPosition) {
             return;
           }
 
-          const [lon, lat, alt] = state.activeViewpoint
-            .cameraPosition as number[];
+          const [lon, lat] = state.activeViewpoint.groundPosition as number[];
+          const alt = state.activeViewpoint.cameraPosition![2];
 
           const coordinates = fromLonLat([lon, lat]);
           const x = Math.round(coordinates[0]);
           const y = Math.round(coordinates[1]);
           const zoom = getZoomFromAltitude(Math.abs(alt));
+          const lang = `lang=${vcsUiApp.locale}`;
 
           const layersInState = [...vcsUiApp.layers]
             .filter((l) => l.properties?.luxOrigin && (l.active || l.loading))
@@ -97,7 +98,7 @@ export default function plugin(
           const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
 
           const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
+          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&lang=${lang}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
           link.target = config.tabId;
 
           link.click();
