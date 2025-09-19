@@ -98,7 +98,7 @@ export default function plugin(
           const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
 
           const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&lang=${lang}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
+          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
           link.target = config.tabId;
 
           link.click();
