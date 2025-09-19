@@ -82,7 +82,7 @@ export default function plugin(
           const lang = `lang=${vcsUiApp.locale}`;
 
           const layersInState = [...vcsUiApp.layers]
-            .filter((l) => l.properties?.luxOrigin && (l.active || l.loading))
+            .filter((l) => l.properties?.luxId && (l.active || l.loading))
             .toReversed();
 
           const layers = layersInState.filter(
