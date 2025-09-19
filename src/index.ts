@@ -90,7 +90,6 @@ export default function plugin(
           );
           const layerIds = `layers=${layers.map((l) => l?.properties.luxId).join('-')}`;
           const layersOpacity = `opacities=${layers.map(() => 1).join('-')}`;
-          const layersTime = `time=${layers.map(() => '-').join('-')}`;
 
           const bgLayerInState = layersInState.filter(
             (l) => l?.properties.luxIsBaselayer,
@@ -98,7 +97,7 @@ export default function plugin(
           const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
 
           const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${layersTime}&${bgLayer}`;
+          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${bgLayer}`;
           link.target = config.tabId;
 
           link.click();
