@@ -67,13 +67,17 @@ export default function plugin(
         callback: async (): Promise<void> => {
           const state = await vcsUiApp.getState(true);
 
+          const activePosition =
+            state.activeViewpoint?.groundPosition ||
+            state.activeViewpoint?.cameraPosition;
+
           // This redirect is only available in 3D mode
-          if (!state.activeViewpoint?.groundPosition) {
+          if (!activePosition || !state.activeViewpoint?.cameraPosition) {
             return;
           }
 
-          const [lon, lat] = state.activeViewpoint.groundPosition as number[];
-          const alt = state.activeViewpoint.cameraPosition![2];
+          const [lon, lat] = activePosition as number[];
+          const alt = state.activeViewpoint.cameraPosition[2];
 
           const coordinates = fromLonLat([lon, lat]);
           const x = Math.round(coordinates[0]);
