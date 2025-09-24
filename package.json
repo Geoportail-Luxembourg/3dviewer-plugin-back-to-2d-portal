@@ -65,5 +65,8 @@
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.5"
   },
-  "mapVersion": "^6.1"
+  "mapVersion": "^6.1",
+  "dependencies": {
+    "proj4": "^2.19.10"
+  }
 }

@@ -1,5 +1,7 @@
 {
   "name": "@geoportallux/lux-3dviewer-plugin-back-to-2d-portal",
   "pathTo2dGeoportal": "http://localhost:5173/theme/main",
-  "tabId": "lux2d"
+  "tabId": "lux2d",
+  "pathToPrintPortal": "https://3dprint-test.geoportail.lu/commande",
+  "tabIdPrint": "luxprint"
 }
