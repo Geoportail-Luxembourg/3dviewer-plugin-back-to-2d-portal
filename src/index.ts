@@ -5,49 +5,143 @@ import {
   ButtonLocation,
 } from '@vcmap/ui';
 import { fromLonLat } from 'ol/proj';
+import proj4 from 'proj4';
 import { name, version, mapVersion } from '../package.json';
+import {
+  clickLink,
+  getScaleFromResolution,
+  getZoomFromAltitude,
+} from './utils';
+
+proj4.defs(
+  'EPSG:2169',
+  '+proj=tmerc +lat_0=49.83333333333334 +lon_0=6.166666666666667 +k=1 +x_0=80000 +y_0=100000 +ellps=intl +towgs84=-189.681,18.3463,-42.7695,-0.33746,-3.09264,2.53861,0.4598 +units=m +no_defs',
+);
 
 type PluginConfig = {
-  pathTo2dGeoportal: string;
-  tabId: string;
+  pathTo2dGeoportal?: string;
+  tabId?: string;
+  pathToPrintPortal?: string;
+  tabIdPrint?: string;
 };
 type PluginState = Record<never, never>;
 
-type MyPlugin = VcsPlugin<PluginConfig, PluginState>;
+type LuxActionsPlugin = VcsPlugin<PluginConfig, PluginState>;
 
-/* eslint-disable @typescript-eslint/naming-convention */
-const zoomToCesiumAltitude = {
-  9: 190000,
-  10: 100000,
-  11: 70000,
-  12: 40000,
-  13: 25000,
-  14: 10000,
-  15: 6000,
-  16: 3500,
-  17: 1900,
-  18: 900,
-  19: 600,
-};
-/* eslint-enable @typescript-eslint/naming-convention */
-
-function getZoomFromAltitude(altitude: number): number {
-  let closestZoom = 9;
-
-  for (const [zoom, alt] of Object.entries(zoomToCesiumAltitude)) {
-    if (altitude < alt) {
-      closestZoom = parseInt(zoom, 10);
-    }
+function initializeBack2DAction(
+  config: PluginConfig,
+  vcsUiApp: VcsUiApp,
+): void {
+  if (!config.pathTo2dGeoportal) {
+    return;
   }
 
-  return closestZoom;
+  const back2DAction = {
+    name: '2D',
+    title: 'linkTo2d.title',
+    icon: '$vcs2d',
+    callback: async (): Promise<void> => {
+      const state = await vcsUiApp.getState(true);
+
+      const activePosition =
+        state.activeViewpoint?.groundPosition ||
+        state.activeViewpoint?.cameraPosition;
+
+      // This redirect is only available in 3D mode
+      if (!activePosition || !state.activeViewpoint?.cameraPosition) {
+        return;
+      }
+
+      const [lon, lat] = activePosition as number[];
+      const alt = state.activeViewpoint.cameraPosition[2];
+
+      const coordinates = fromLonLat([lon, lat]);
+      const x = Math.round(coordinates[0]);
+      const y = Math.round(coordinates[1]);
+      const zoom = getZoomFromAltitude(Math.abs(alt));
+      const lang = `lang=${vcsUiApp.locale}`;
+
+      const layersInState = [...vcsUiApp.layers]
+        .filter((l) => l.properties?.luxId && (l.active || l.loading))
+        .toReversed();
+
+      const layers = layersInState.filter(
+        (l) => !l?.properties.is3DLayer && !l?.properties.luxIsBaselayer,
+      );
+      const layerIds = `layers=${layers.map((l) => l?.properties.luxId).join('-')}`;
+      const layersOpacity = `opacities=${layers.map(() => 1).join('-')}`;
+
+      const bgLayerInState = layersInState.filter(
+        (l) => l?.properties.luxIsBaselayer,
+      );
+      const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
+
+      const href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${bgLayer}`;
+      const target = config.tabId || '_blank';
+
+      clickLink(href, target);
+    },
+  };
+
+  vcsUiApp.navbarManager.add(
+    { id: 'back-2D', action: back2DAction },
+    name,
+    ButtonLocation.MAP,
+    { desktop: true, tablet: true, mobile: true },
+  );
+}
+
+function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
+  if (!config.pathToPrintPortal) {
+    return;
+  }
+
+  const action = {
+    name: '3DPrint',
+    title: 'linkTo3DPrint.title',
+    icon: '$vcsUpload',
+    callback: async (): Promise<void> => {
+      const state = await vcsUiApp.getState(true);
+
+      const activePosition =
+        state.activeViewpoint?.groundPosition ||
+        state.activeViewpoint?.cameraPosition;
+
+      // This redirect is only available in 3D mode
+      if (!activePosition || !state.activeViewpoint?.cameraPosition) {
+        return;
+      }
+
+      const [lon, lat] = activePosition as number[];
+      const coordinates = fromLonLat([lon, lat], 'EPSG:2169');
+      const x = Math.round(coordinates[0]);
+      const y = Math.round(coordinates[1]);
+
+      const res = vcsUiApp.maps.activeMap!.getCurrentResolution(
+        fromLonLat([lon, lat]),
+      );
+      const scale = getScaleFromResolution(res, lat);
+
+      const href = `${config.pathToPrintPortal}?easting=${Math.round(x)}&northing=${Math.round(y)}&scale=${scale}`;
+      const target = config.tabId || '_blank';
+
+      clickLink(href, target);
+    },
+  };
+
+  vcsUiApp.navbarManager.add(
+    { id: 'print-3D', action },
+    name,
+    ButtonLocation.MAP,
+    { desktop: true, tablet: true, mobile: true },
+  );
 }
 
 export default function plugin(
   config: PluginConfig,
   // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   baseUrl: string,
-): MyPlugin {
+): LuxActionsPlugin {
   return {
     get name(): string {
       return name;
@@ -60,60 +154,8 @@ export default function plugin(
     },
     // eslint-disable-next-line  @typescript-eslint/no-unused-vars
     initialize(vcsUiApp: VcsUiApp, pluginState?: PluginState): Promise<void> {
-      const action = {
-        name: '2D',
-        title: 'back2d.title',
-        icon: '$vcs2d',
-        callback: async (): Promise<void> => {
-          const state = await vcsUiApp.getState(true);
-
-          const activePosition =
-            state.activeViewpoint?.groundPosition ||
-            state.activeViewpoint?.cameraPosition;
-
-          // This redirect is only available in 3D mode
-          if (!activePosition || !state.activeViewpoint?.cameraPosition) {
-            return;
-          }
-
-          const [lon, lat] = activePosition as number[];
-          const alt = state.activeViewpoint.cameraPosition[2];
-
-          const coordinates = fromLonLat([lon, lat]);
-          const x = Math.round(coordinates[0]);
-          const y = Math.round(coordinates[1]);
-          const zoom = getZoomFromAltitude(Math.abs(alt));
-          const lang = `lang=${vcsUiApp.locale}`;
-
-          const layersInState = [...vcsUiApp.layers]
-            .filter((l) => l.properties?.luxId && (l.active || l.loading))
-            .toReversed();
-
-          const layers = layersInState.filter(
-            (l) => !l?.properties.is3DLayer && !l?.properties.luxIsBaselayer,
-          );
-          const layerIds = `layers=${layers.map((l) => l?.properties.luxId).join('-')}`;
-          const layersOpacity = `opacities=${layers.map(() => 1).join('-')}`;
-
-          const bgLayerInState = layersInState.filter(
-            (l) => l?.properties.luxIsBaselayer,
-          );
-          const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
-
-          const link = document.createElement('a');
-          link.href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${bgLayer}`;
-          link.target = config.tabId;
-
-          link.click();
-        },
-      };
-
-      vcsUiApp.navbarManager.add(
-        { id: 'back-2D', action },
-        name,
-        ButtonLocation.MAP,
-        { desktop: true, tablet: true, mobile: true },
-      );
+      initializeBack2DAction(config, vcsUiApp);
+      initializePrintAction(config, vcsUiApp);
 
       return Promise.resolve();
     },
@@ -155,23 +197,35 @@ export default function plugin(
     destroy(): void {},
     i18n: {
       de: {
-        back2d: {
+        linkTo2d: {
           title: 'Zurück zum Luxemburger Geoportal',
+        },
+        linkTo3DPrint: {
+          title: '3D-Druck bestellen',
         },
       },
       en: {
-        back2d: {
+        linkTo2d: {
           title: 'Back to the Luxembourg geoportal',
+        },
+        linkTo3DPrint: {
+          title: 'Order a 3D print',
         },
       },
       fr: {
-        back2d: {
+        linkTo2d: {
           title: 'Retour au géoportail du Luxembourg',
+        },
+        linkTo3DPrint: {
+          title: 'Commander une impression 3D',
         },
       },
       lb: {
-        back2d: {
+        linkTo2d: {
           title: 'Zeréck op de Lëtzebuerger Geoportal',
+        },
+        linkTo3DPrint: {
+          title: 'Eng 3D-Dréck bestellen',
         },
       },
     },
