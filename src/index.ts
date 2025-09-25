@@ -154,6 +154,7 @@ export default function plugin(
     },
     // eslint-disable-next-line  @typescript-eslint/no-unused-vars
     initialize(vcsUiApp: VcsUiApp, pluginState?: PluginState): Promise<void> {
+      window.name = 'lux3d'; // set window name as tab reference for geoportail
       initializeBack2DAction(config, vcsUiApp);
       initializePrintAction(config, vcsUiApp);
 
