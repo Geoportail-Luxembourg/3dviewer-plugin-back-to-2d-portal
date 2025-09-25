@@ -35,25 +35,22 @@ export function clickLink(href: string, target = '_blank'): void {
 }
 
 const scales = [
-  100, 250, 500, 1000, 1500, 2500, 5000, 10000, 15000, 20000, 25000, 50000,
-  80000, 100000, 125000, 200000, 250000, 400000, 500000, 1000000, 2500000,
-  5000000, 10000000, 25000000, 50000000,
+  100, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500,
+  6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000, 15000, 20000, 25000,
+  30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000,
+  85000, 90000, 95000, 100000, 125000, 200000, 250000, 300000, 400000, 500000,
+  600000, 700000, 800000, 900000, 1000000,
 ];
-
 /**
  * Get scale from resolution
  * @param resolution
- * @param latitude eg. 49.75
  * @returns
  */
-export function getScaleFromResolution(
-  resolution: number,
-  latitude: number,
-): number {
-  const mercatorFactor = 1 / Math.cos((latitude * Math.PI) / 180);
-  const realResolution = resolution * mercatorFactor;
+export function getScaleFromResolution(resolution: number): number {
+  const dpi = 96; // Cesium dpi
+  const meterPerPixelAtScale1 = 0.0254 / dpi;
+  const scaleRatio = resolution / meterPerPixelAtScale1;
 
-  const scaleRatio = realResolution / 0.00026458;
   const closestScale = scales.reduce((prev, curr) => {
     return Math.abs(curr - scaleRatio) < Math.abs(prev - scaleRatio)
       ? curr
