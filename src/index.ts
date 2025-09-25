@@ -168,6 +168,8 @@ export default function plugin(
       return {
         pathTo2dGeoportal: config.pathTo2dGeoportal,
         tabId: config.tabId,
+        pathToPrintPortal: config.pathToPrintPortal,
+        tabIdPrint: config.tabIdPrint
       };
     },
     /**
@@ -177,6 +179,8 @@ export default function plugin(
       return {
         pathTo2dGeoportal: config.pathTo2dGeoportal,
         tabId: config.tabId,
+        pathToPrintPortal: config.pathToPrintPortal,
+        tabIdPrint: config.tabIdPrint
       };
     },
     /**
