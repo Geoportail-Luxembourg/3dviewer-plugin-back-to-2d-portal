@@ -60,6 +60,7 @@ function initializeBack2DAction(
       const y = Math.round(coordinates[1]);
       const zoom = getZoomFromAltitude(Math.abs(alt));
       const lang = `lang=${vcsUiApp.locale}`;
+      const rotation = -((state.activeViewpoint.heading ?? 0) * Math.PI) / 180;
 
       const layersInState = [...vcsUiApp.layers]
         .filter((l) => l.properties?.luxId && (l.active || l.loading))
@@ -76,7 +77,7 @@ function initializeBack2DAction(
       );
       const bgLayer = `bgLayer=${bgLayerInState.map((l) => l?.name).join('') || 'blank'}`;
 
-      const href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&${lang}&version=3&${layerIds}&${layersOpacity}&${bgLayer}`;
+      const href = `${config.pathTo2dGeoportal}?X=${Math.round(x)}&Y=${Math.round(y)}&zoom=${zoom}&rotation=${rotation}&${lang}&version=3&${layerIds}&${layersOpacity}&${bgLayer}`;
       const target = config.tabId || '_blank';
 
       clickLink(href, target);
