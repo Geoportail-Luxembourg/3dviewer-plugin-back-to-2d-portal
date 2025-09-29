@@ -39,7 +39,7 @@ To further develop the plugin run: `npm start`
     },
 ```
 
- ⚠️ WARNING: `LUREF EPSG 2169` must be defined in global viewer config (`lux.config.json`).
+⚠️ WARNING: `LUREF EPSG 2169` must be defined in global viewer config (`lux.config.json`).
 
 ## Build the npm package
 
