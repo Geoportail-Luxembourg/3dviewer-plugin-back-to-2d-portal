@@ -5,7 +5,6 @@ import {
   ButtonLocation,
 } from '@vcmap/ui';
 import { fromLonLat } from 'ol/proj';
-import { Projection, wgs84Projection } from '@vcmap/core';
 import { name, version, mapVersion } from '../package.json';
 import {
   clickLink,
@@ -18,8 +17,6 @@ type PluginConfig = {
   tabId?: string;
   pathToPrintPortal?: string;
   tabIdPrint?: string;
-  epsg: string;
-  proj4: string;
 };
 type PluginState = Record<never, never>;
 
@@ -93,8 +90,6 @@ function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
     return;
   }
 
-  const pluginProj = new Projection({ epsg: config.epsg, proj4: config.proj4 });
-
   const action = {
     name: '3DPrint',
     title: 'linkTo3DPrint.title',
@@ -112,10 +107,7 @@ function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
       }
 
       const [lon, lat] = activePosition as number[];
-      const coordinates = Projection.transform(wgs84Projection, pluginProj, [
-        lon,
-        lat,
-      ]);
+      const coordinates = fromLonLat([lon, lat], 'EPSG:2169');
       const x = Math.round(coordinates[0]);
       const y = Math.round(coordinates[1]);
 
@@ -173,8 +165,6 @@ export default function plugin(
         tabId: config.tabId,
         pathToPrintPortal: config.pathToPrintPortal,
         tabIdPrint: config.tabIdPrint,
-        epsg: config.epsg,
-        proj4: config.proj4,
       };
     },
     /**
@@ -186,8 +176,6 @@ export default function plugin(
         tabId: config.tabId,
         pathToPrintPortal: config.pathToPrintPortal,
         tabIdPrint: config.tabIdPrint,
-        epsg: config.epsg,
-        proj4: config.proj4,
       };
     },
     /**
