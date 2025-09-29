@@ -5,7 +5,7 @@ import {
   ButtonLocation,
 } from '@vcmap/ui';
 import { fromLonLat } from 'ol/proj';
-import proj4 from 'proj4';
+import { Projection, wgs84Projection } from '@vcmap/core';
 import { name, version, mapVersion } from '../package.json';
 import {
   clickLink,
@@ -13,16 +13,13 @@ import {
   getZoomFromAltitude,
 } from './utils';
 
-proj4.defs(
-  'EPSG:2169',
-  '+proj=tmerc +lat_0=49.83333333333334 +lon_0=6.166666666666667 +k=1 +x_0=80000 +y_0=100000 +ellps=intl +towgs84=-189.681,18.3463,-42.7695,-0.33746,-3.09264,2.53861,0.4598 +units=m +no_defs',
-);
-
 type PluginConfig = {
   pathTo2dGeoportal?: string;
   tabId?: string;
   pathToPrintPortal?: string;
   tabIdPrint?: string;
+  epsg: string;
+  proj4: string;
 };
 type PluginState = Record<never, never>;
 
@@ -96,6 +93,8 @@ function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
     return;
   }
 
+  const pluginProj = new Projection({ epsg: config.epsg, proj4: config.proj4 });
+
   const action = {
     name: '3DPrint',
     title: 'linkTo3DPrint.title',
@@ -113,16 +112,19 @@ function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
       }
 
       const [lon, lat] = activePosition as number[];
-      const coordinates = fromLonLat([lon, lat], 'EPSG:2169');
+      const coordinates = Projection.transform(wgs84Projection, pluginProj, [
+        lon,
+        lat,
+      ]);
       const x = Math.round(coordinates[0]);
       const y = Math.round(coordinates[1]);
 
       const res = vcsUiApp.maps.activeMap!.getCurrentResolution(
         fromLonLat([lon, lat]),
       );
-      const scale = getScaleFromResolution(res, lat);
+      const scale = getScaleFromResolution(res);
 
-      const href = `${config.pathToPrintPortal}?easting=${Math.round(x)}&northing=${Math.round(y)}&scale=${scale}`;
+      const href = `${config.pathToPrintPortal}?easting=${x}&northing=${y}&scale=${scale}`;
       const target = config.tabId || '_blank';
 
       clickLink(href, target);
@@ -154,6 +156,7 @@ export default function plugin(
     },
     // eslint-disable-next-line  @typescript-eslint/no-unused-vars
     initialize(vcsUiApp: VcsUiApp, pluginState?: PluginState): Promise<void> {
+      window.name = 'lux3d'; // set window name as tab reference for geoportail
       initializeBack2DAction(config, vcsUiApp);
       initializePrintAction(config, vcsUiApp);
 
@@ -170,6 +173,8 @@ export default function plugin(
         tabId: config.tabId,
         pathToPrintPortal: config.pathToPrintPortal,
         tabIdPrint: config.tabIdPrint,
+        epsg: config.epsg,
+        proj4: config.proj4,
       };
     },
     /**
@@ -181,6 +186,8 @@ export default function plugin(
         tabId: config.tabId,
         pathToPrintPortal: config.pathToPrintPortal,
         tabIdPrint: config.tabIdPrint,
+        epsg: config.epsg,
+        proj4: config.proj4,
       };
     },
     /**
