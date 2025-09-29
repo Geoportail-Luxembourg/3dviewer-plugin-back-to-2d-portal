@@ -28,12 +28,17 @@ To further develop the plugin run: `npm start`
 
 - Add plugin with desired values to map-ui module configuration:
 
-```
+```js
     {
       "name": "@geoportallux/lux-3dviewer-plugin-back-to-2d-portal",
       "entry": "plugins/@geoportallux/lux-3dviewer-plugin-back-to-2d-portal/index.js",
       "pathTo2dGeoportal": "...",
-      "tabId": "..."
+      "tabId": "lux2d",
+      "pathToPrintPortal": "...", // If empty, won't display the button to 3D print portal
+      "tabIdPrint": "luxprint",
+      // Destination proj for 3D print portal button
+      "epsg": "2169",
+      "proj4": "+proj=tmerc +lat_0=49.83333333333334 +lon_0=6.166666666666667 +k=1 +x_0=80000 +y_0=100000 +ellps=intl +towgs84=-189.681,18.3463,-42.7695,-0.33746,-3.09264,2.53861,0.4598 +units=m +no_defs"
     },
 ```
 
