@@ -1,7 +1,7 @@
 {
   "name": "@geoportallux/lux-3dviewer-plugin-back-to-2d-portal",
-  "version": "1.1.0",
-  "description": "A plugin that adds a 2D button in the toolbar to navigate back to the 2D geoportal",
+  "version": "1.2.0",
+  "description": "A plugin that adds a 2D button and a button to 3D print in the toolbar to navigate back to the 2D geoportal",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
