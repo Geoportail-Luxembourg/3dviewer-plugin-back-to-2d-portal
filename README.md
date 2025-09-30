@@ -28,14 +28,18 @@ To further develop the plugin run: `npm start`
 
 - Add plugin with desired values to map-ui module configuration:
 
-```
+```js
     {
       "name": "@geoportallux/lux-3dviewer-plugin-back-to-2d-portal",
       "entry": "plugins/@geoportallux/lux-3dviewer-plugin-back-to-2d-portal/index.js",
       "pathTo2dGeoportal": "...",
-      "tabId": "..."
+      "tabId": "lux2d",
+      "pathToPrintPortal": "...", // If empty, won't display the button to 3D print portal
+      "tabIdPrint": "luxprint"
     },
 ```
+
+⚠️ WARNING: `LUREF EPSG 2169` must be defined in global viewer config (`lux.config.json`).
 
 ## Build the npm package
 
