@@ -104,7 +104,7 @@ function initializePrintAction(config: PluginConfig, vcsUiApp: VcsUiApp): void {
   const action = {
     name: '3DPrint',
     title: 'linkTo3DPrint.title',
-    icon: '$vcsUpload',
+    icon: '$vcsExport',
     callback: async (): Promise<void> => {
       const state = await vcsUiApp.getState(true);
 
