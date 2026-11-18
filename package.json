@@ -39,7 +39,8 @@
     "./dist": "./dist/index.js"
   },
   "repository": {
-    "url": "https://github.com/Geoportail-Luxembourg/3dviewer-plugin-back-to-2d-portal"
+    "type": "git",
+    "url": "git+https://github.com/Geoportail-Luxembourg/3dviewer-plugin-back-to-2d-portal.git"
   },
   "eslintIgnore": [
     "node_modules",
